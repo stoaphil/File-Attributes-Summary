@@ -1,0 +1,115 @@
+FILE ATTRIBUTES SUMMARY
+
+From Chapters 15-17, TLPI
+
+Ch. 15:
+
+File attributes == metadata.
+The stat(), lstat(), and fstat() system calls retrieve information about a file, mostly
+drawn from the file i-node.
+
+struct stat {
+               dev_t     st_dev;         /* ID of device containing file */
+               ino_t     st_ino;         /* inode number */
+               mode_t    st_mode;        /* file type and mode */
+               nlink_t   st_nlink;       /* number of hard links */
+               uid_t     st_uid;         /* user ID of owner */
+               gid_t     st_gid;         /* group ID of owner */
+               dev_t     st_rdev;        /* device ID (if special file) */
+               off_t     st_size;        /* total size, in bytes */
+               blksize_t st_blksize;     /* blocksize for filesystem I/O */
+               blkcnt_t  st_blocks;      /* number of 512B blocks allocated */
+
+               /* Since Linux 2.6, the kernel supports nanosecond
+                  precision for the following timestamp fields.
+                  For the details before Linux 2.6, see NOTES. */
+
+               struct timespec st_atim;  /* time of last access */
+               struct timespec st_mtim;  /* time of last modification */
+               struct timespec st_ctim;  /* time of last status change */
+
+           #define st_atime st_atim.tv_sec      /* Backward compatibility */
+           #define st_mtime st_mtim.tv_sec
+           #define st_ctime st_ctim.tv_sec
+           };
+
+
+Directories have the same permision scheme as files, but the permissions are interpreted
+as follows:
+
+Read:       the contents (i.e., the list of files) may be listed (e.g., by <ls -l>)
+Write:      files may be created in and removed from the directory
+Execute:    files within the directory may be accessed (called search permission)
+
+
+On older UNIX implementations, the sticky bit was provided as a way of mak-
+ing commonly used programs run faster. If the sticky bit was set on a program file,
+then the first time the program was executed, a copy of the program text was saved
+in the swap area—thus it sticks in swap, and loads faster on subsequent executions.
+Modern UNIX implementations have more sophisticated memory-management
+systems, which have rendered this use of the sticky permission bit obsolete.
+The name of the constant for the sticky permission bit shown in Table 15-4,
+S_ISVTX, derives from an alternative name for the sticky bit: the saved-text bit.
+In modern UNIX implementations (including Linux), the sticky permission bit
+serves another, quite different purpose. For directories, the sticky bit acts as the
+**restricted deletion** flag.
+
+The umask is a process attribute that specifies which permission bits should always be
+**turned off** when new files or directories are created by the process.
+
+IN0DE FLAGS, aka *ext2 Extended File Attributes*:
+
+    see <lsattr>, <chattr> and man attr.  Per man 1 chattr, these attributes are:
+
+        Append only (privilege required)
+        Enable file compression (not implemented)
+        Synchronous directory updates (since Linux 2.6)
+        Immutable (privilege required)
+        Enable data journaling (privilege required)
+        Don’t update file last access time
+        No dump
+        No tail packing
+        Secure deletion (not implemented)
+        Synchronous file (and directory) updates
+        Treat as top-level directory for Orlov (since Linux 2.6)
+        File can be undeleted (not implemented)
+
+Ch 16:
+
+This chapter describes extended attributes (EAs), which allow arbitrary metadata,
+in the form of name-value pairs, to be associated with file i-nodes.
+
+EAs are used to implement access control lists (Chapter 17) and file capabilities (Chap-
+ter 39). However, the design of EAs is general enough to allow them to be used for
+other purposes as well.
+
+Here, commands, manpages are:
+
+setfattr, getfattr, from the shell, and the syscalls are:
+setxattr, getxattr, removexattr, listxattr
+
+These come in four flavors:  User, system, Trusted, and Security (SELinux).
+
+NOTE:  I haven't found a list of what these attributes are, i.e., what can be set.
+
+Ch. 17:
+
+Some applications need finer control over the permissions granted to specific users and
+groups. To meet this requirement, many UNIX systems implement an extension to the
+traditional UNIX file permissions model known as access control lists (ACLs). Basically,
+can set per user or per group permissions, i.e., if the group permissions are r-x, can
+refine that and provide just the wireshark group rwx.
+
+Here, some commands/manpages are:
+
+from the shell, getfacl, setfacl; man 5 acl  plus a whole fuckin shit-ton of headers in
+the lib.
+
+A *minimal* ACL is one with the normal file attributes discussed in Ch. 15 above;
+anything additional makes it an *extended* ACL.
+
+----------------------------
+
+The Ch. 16 SELinux attributes will show with a "." at the end of the normal permissions
+string with <ls -l>; an extended ACL will be shown in the smae place with a "+".
+
